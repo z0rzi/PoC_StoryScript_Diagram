@@ -1,0 +1,256 @@
+{
+  "stories": {
+    "example.story": {
+      "tree": {
+        "3.1": {
+          "method": "call",
+          "ln": "3.1",
+          "col_start": "4",
+          "col_end": "14",
+          "output": null,
+          "name": [
+            "__p-3.1"
+          ],
+          "service": null,
+          "command": null,
+          "function": "returnTrue",
+          "args": [],
+          "enter": null,
+          "exit": null,
+          "parent": null,
+          "src": null,
+          "next": "3.2"
+        },
+        "3.2": {
+          "method": "call",
+          "ln": "3.2",
+          "col_start": "21",
+          "col_end": "31",
+          "output": null,
+          "name": [
+            "__p-3.2"
+          ],
+          "service": null,
+          "command": null,
+          "function": "returnTrue",
+          "args": [],
+          "enter": null,
+          "exit": null,
+          "parent": null,
+          "src": null,
+          "next": "3"
+        },
+        "3": {
+          "method": "if",
+          "ln": "3",
+          "col_start": null,
+          "col_end": "50",
+          "output": null,
+          "name": null,
+          "service": null,
+          "command": null,
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "expression",
+              "expression": "and",
+              "values": [
+                {
+                  "$OBJECT": "path",
+                  "paths": [
+                    "__p-3.1"
+                  ]
+                },
+                {
+                  "$OBJECT": "path",
+                  "paths": [
+                    "__p-3.2"
+                  ]
+                }
+              ]
+            }
+          ],
+          "enter": "4",
+          "exit": "5",
+          "parent": null,
+          "src": "if returnTrue() and returnTrue()",
+          "next": "5"
+        },
+        "4": {
+          "method": "execute",
+          "ln": "4",
+          "col_start": "3",
+          "col_end": "51",
+          "output": [],
+          "name": null,
+          "service": "log",
+          "command": "info",
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "arg",
+              "name": "msg",
+              "arg": {
+                "$OBJECT": "string",
+                "string": "This path will always be called."
+              }
+            }
+          ],
+          "enter": null,
+          "exit": null,
+          "parent": "3",
+          "src": "  log info msg: \"This path will always be called.\""
+        },
+        "5": {
+          "method": "else",
+          "ln": "5",
+          "col_start": "1",
+          "col_end": "50",
+          "output": null,
+          "name": null,
+          "service": null,
+          "command": null,
+          "function": null,
+          "args": null,
+          "enter": "6",
+          "exit": "9",
+          "parent": null,
+          "src": "else",
+          "next": "9"
+        },
+        "6": {
+          "method": "execute",
+          "ln": "6",
+          "col_start": "3",
+          "col_end": "50",
+          "output": [],
+          "name": null,
+          "service": "log",
+          "command": "info",
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "arg",
+              "name": "msg",
+              "arg": {
+                "$OBJECT": "string",
+                "string": "This path will never be called."
+              }
+            }
+          ],
+          "enter": null,
+          "exit": null,
+          "parent": "5",
+          "src": "  log info msg: \"This path will never be called.\""
+        },
+        "9": {
+          "method": "function",
+          "ln": "9",
+          "col_start": "1",
+          "col_end": "14",
+          "output": [
+            "boolean"
+          ],
+          "name": null,
+          "service": null,
+          "command": null,
+          "function": "returnTrue",
+          "args": [],
+          "enter": "10",
+          "exit": "13",
+          "parent": null,
+          "src": "function returnTrue returns boolean",
+          "next": "13"
+        },
+        "10": {
+          "method": "return",
+          "ln": "10",
+          "col_start": "3",
+          "col_end": "14",
+          "output": null,
+          "name": null,
+          "service": null,
+          "command": null,
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "boolean",
+              "boolean": true
+            }
+          ],
+          "enter": null,
+          "exit": null,
+          "parent": "9",
+          "src": "  return true"
+        },
+        "13": {
+          "method": "function",
+          "ln": "13",
+          "col_start": "1",
+          "col_end": "19",
+          "output": [
+            "List"
+          ],
+          "name": null,
+          "service": null,
+          "command": null,
+          "function": "testFunc",
+          "args": [],
+          "enter": "14",
+          "exit": null,
+          "parent": null,
+          "src": "function testFunc returns List[int]"
+        },
+        "14": {
+          "method": "return",
+          "ln": "14",
+          "col_start": "3",
+          "col_end": "19",
+          "output": null,
+          "name": null,
+          "service": null,
+          "command": null,
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "list",
+              "items": [
+                {
+                  "$OBJECT": "int",
+                  "int": 1
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 3
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 6
+                }
+              ]
+            }
+          ],
+          "enter": null,
+          "exit": null,
+          "parent": "13",
+          "src": "  return [1, 3, 6]"
+        }
+      },
+      "services": [
+        "log"
+      ],
+      "entrypoint": "3.1",
+      "functions": {
+        "returnTrue": "9",
+        "testFunc": "13"
+      },
+      "version": "0.26.3"
+    }
+  },
+  "services": [
+    "log"
+  ],
+  "entrypoint": [
+    "example.story"
+  ]
+}

@@ -1,0 +1,26 @@
+
+body {
+  font-family: sans-serif;
+  font-size: 15pt;
+}
+
+.block {
+  margin-left: 25px;
+  margin-bottom: 20px;
+  border-left: 1px solid #bbb;
+}
+.component {
+  border: 2px solid #bbb;
+  background: #FFFFFF;
+  border-radius: 10px;
+  width: fit-content;
+  padding: 5px 20px;
+  margin-top: 5px;
+  margin-left: 5px;
+}
+
+.icon {
+  vertical-align: middle;
+  margin-right: 10px;
+  max-width: 20px;
+}
