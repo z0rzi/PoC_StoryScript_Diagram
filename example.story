@@ -1,5 +1,6 @@
 # Basic if statement example.
 
+a = 123
 if returnTrue() and returnTrue()
   log info msg: "This path will always be called."
 else

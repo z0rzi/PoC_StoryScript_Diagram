@@ -1,6 +1,28 @@
-const fs = require('fs');
-const http = require('http');
-var path = require('path');
+const fs = require('fs'),
+      http = require('http'),
+      path = require('path');
+
+const PORT = 8000
+
+const service_icon = {
+    "stripe": "assets/serviceStripe.png",
+    "psql": "assets/servicePostgre.png",
+    "mailgun": "assets/serviceMailgun.png",
+    "default": "assets/serviceUnknown.png"
+}
+
+const type_icon = {
+    "string": "assets/typeText.png",
+    "default": "assets/typeDefault.png",
+    "List": "assets/typeList.png"
+}
+
+const base_icons = {
+    "function": "assets/functionIcon.png",
+    "return": "assets/returnIcon.png",
+    "for": "assets/loopIcon.png",
+    "while": "assets/loopIcon.png",
+}
 
 const parser = {
     parseArgs: arg => {
@@ -42,43 +64,56 @@ const parser = {
 
 class DiagramComponent {
 
-    id = 0
-    html = ""
-    innerComponents = []
-    opener = ""
-    closer = ""
+    html      = ""
+    classes   = ["component"]
+    iconSrc   = ""
+    innerText = ""
 
-    constructor(id0, obj) {
-        this.id = id0
+    innerComponents = []
+    header = ""
+    footer = ""
+
+    constructor(obj) {
 
         switch(obj.method) {
             case "function":
-                this.html =`<div class="component function"><img class="icon" src="./assets/functionIcon.png" />${obj.function}</div>`;
-                this.opener = "<div class='block'>";
-                this.closer = "</div>";
+                this.classes.push("function")
+                this.innerText = obj.function;
+                this.imageSrc = base_icons["function"]
+                this.header = "<div class='block'>";
+                this.footer = "</div>";
                 break;
             case "return":
-                this.html =`<div class="component return">${parser.parseArgs(obj.args[0])}</div>`;
+                this.classes.push("return")
+                this.innerText = parser.parseArgs(obj.args[0]);
+                this.imageSrc = base_icons["return"]
+                break;
+            case "expression":
+                this.classes.push("variable")
+                this.innerText = obj.name[0];
                 break;
             case "call":
-                this.html =`<div class="component variable">${obj.name[0]}</div>`;
+                this.classes.push("variable")
+                this.innerText = obj.name[0];
                 break;
             case "execute":
-                this.html =`<div class="component execute">&lt;${obj.service}&gt; ${obj.command}</div>`;
+                this.classes.push("execute");
+                this.innerText = obj.command;
+                this.imageSrc = service_icon[obj.service] || service_icon["default"];
                 break;
             case "if":
-                this.html =`<div class="component if">If ${parser.parseArgs(obj.args[0])}</div>`;
-                this.opener = "<div class='block'>";
-                this.closer = "</div>";
+                this.classes.push("if");
+                this.innerText = `If ${parser.parseArgs(obj.args[0])}:`;
+                this.header = "<div class='block'>";
+                this.footer = "</div>";
                 break;
             case "else":
-                this.html =`<div class="component else">else</div>`;
-                this.opener = "<div class='block'>";
-                this.closer = "</div>";
+                this.classes.push("else");
+                this.innerText = `Else:`;
+                this.header = "<div class='block'>";
+                this.footer = "</div>";
                 break;
         }
-
-        // console.log(this.html);
     }
 
     /** 
@@ -90,10 +125,15 @@ class DiagramComponent {
     }
 
     getHTML() {
-        return this.html +
-            this.opener + 
+        let img = ""
+        if( !!this.imageSrc ) img = `<img class="icon" src="${this.imageSrc}" />`
+
+        let compHtml = `<div class="${this.classes.join(' ')}">${img} ${this.innerText}</div>`
+
+        return compHtml +
+            this.header + 
             this.innerComponents.reduce((acc, cmp) => acc+cmp.getHTML(), "")+
-            this.closer;
+            this.footer;
     }
 }
 
@@ -111,23 +151,21 @@ class Diagram {
         this.parseTree(compiled, pointer)
     }
 
-    parseTree(fullTree, pointer, parent=null, level=0) {
+    parseTree(fullTree, pointer, parent=null) {
 
         while( !!pointer ) {
 
-            console.log(level)
-
             let currentLine = fullTree[pointer]
 
-            let comp = new DiagramComponent(pointer, currentLine)
+            let comp = new DiagramComponent(currentLine)
 
-            if( level === 0 )
+            if( parent === null )
                 this.components.push(comp);
             else
                 parent.addToBody(comp);
 
             if( !!currentLine.enter ) {
-                this.parseTree(fullTree, currentLine.enter, comp, level+1)
+                this.parseTree(fullTree, currentLine.enter, comp)
             }
 
             pointer = currentLine.next
@@ -139,6 +177,10 @@ class Diagram {
     }
 }
 
+
+//
+// Reading external files and launching server
+//
 fs.readFile("example.json", {encoding: 'utf-8'}, function(err, rawTree){
     if(!!err) {
         console.log(err);
@@ -155,10 +197,13 @@ fs.readFile("example.json", {encoding: 'utf-8'}, function(err, rawTree){
 
         let d = new Diagram(compiled)
 
+        console.log(`Listening on http://localhost:${PORT}`)
+
         http.createServer(function(request, response) {  
 
-
-
+            //
+            // Bellow code to access the images
+            //
             var reqpath = request.url.toString().split('?')[0];
             var dir = __dirname;
             var file = path.join(dir, reqpath.replace(/\/$/, '/index.html'));
@@ -174,7 +219,7 @@ fs.readFile("example.json", {encoding: 'utf-8'}, function(err, rawTree){
                 response.write(`<style>${rawStyle}</style>`);
                 response.end();  
             });
-        }).listen(8000);
+        }).listen(PORT);
 
     });
 });
