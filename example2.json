@@ -1,0 +1,185 @@
+{
+  "stories": {
+    "example2.story": {
+      "tree": {
+        "2": {
+          "method": "execute",
+          "ln": "2",
+          "col_start": "1",
+          "col_end": "30",
+          "output": [],
+          "name": null,
+          "service": "redis",
+          "command": "set",
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "arg",
+              "name": "key",
+              "arg": {
+                "$OBJECT": "string",
+                "string": "count"
+              }
+            },
+            {
+              "$OBJECT": "arg",
+              "name": "value",
+              "arg": {
+                "$OBJECT": "int",
+                "int": 0
+              }
+            }
+          ],
+          "enter": null,
+          "exit": null,
+          "parent": null,
+          "src": "redis set key:\"count\" value:0",
+          "next": "3.1"
+        },
+        "3.1": {
+          "method": "execute",
+          "ln": "3.1",
+          "col_start": null,
+          "col_end": null,
+          "output": [
+            "server"
+          ],
+          "name": null,
+          "service": "http",
+          "command": "server",
+          "function": null,
+          "args": [],
+          "enter": "3",
+          "exit": null,
+          "parent": null,
+          "src": null
+        },
+        "3": {
+          "method": "when",
+          "ln": "3",
+          "col_start": "11",
+          "col_end": "51",
+          "output": [
+            "request"
+          ],
+          "name": null,
+          "service": "server",
+          "command": "listen",
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "arg",
+              "name": "path",
+              "arg": {
+                "$OBJECT": "string",
+                "string": "/counter"
+              }
+            }
+          ],
+          "enter": "4",
+          "exit": null,
+          "parent": "3.1",
+          "src": "when http server listen path:\"/counter\" as request"
+        },
+        "4": {
+          "method": "execute",
+          "ln": "4",
+          "col_start": "11",
+          "col_end": "43",
+          "output": [],
+          "name": [
+            "count"
+          ],
+          "service": "redis",
+          "command": "increment",
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "arg",
+              "name": "key",
+              "arg": {
+                "$OBJECT": "string",
+                "string": "count"
+              }
+            },
+            {
+              "$OBJECT": "arg",
+              "name": "by",
+              "arg": {
+                "$OBJECT": "int",
+                "int": 1
+              }
+            }
+          ],
+          "enter": null,
+          "exit": null,
+          "parent": "3",
+          "src": "  count = redis increment key:\"count\" by:1",
+          "next": "5"
+        },
+        "5": {
+          "method": "execute",
+          "ln": "5",
+          "col_start": "3",
+          "col_end": "67",
+          "output": [],
+          "name": null,
+          "service": "request",
+          "command": "write",
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "arg",
+              "name": "content",
+              "arg": {
+                "$OBJECT": "expression",
+                "expression": "sum",
+                "values": [
+                  {
+                    "$OBJECT": "string",
+                    "string": "This page has been visited "
+                  },
+                  {
+                    "$OBJECT": "type_cast",
+                    "type": {
+                      "$OBJECT": "type",
+                      "type": "string"
+                    },
+                    "value": {
+                      "$OBJECT": "path",
+                      "paths": [
+                        "count"
+                      ]
+                    }
+                  },
+                  {
+                    "$OBJECT": "string",
+                    "string": " times"
+                  }
+                ]
+              }
+            }
+          ],
+          "enter": null,
+          "exit": null,
+          "parent": "3",
+          "src": "  request write content:\"This page has been visited {count} times\""
+        }
+      },
+      "services": [
+        "http",
+        "redis"
+      ],
+      "entrypoint": "2",
+      "functions": {},
+      "version": "0.26.3"
+    }
+  },
+  "services": [
+    "http",
+    "redis"
+  ],
+  "entrypoint": [
+    "example2.story"
+  ]
+}

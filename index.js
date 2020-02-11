@@ -8,6 +8,8 @@ const service_icon = {
     "stripe": "assets/serviceStripe.png",
     "psql": "assets/servicePostgre.png",
     "mailgun": "assets/serviceMailgun.png",
+    "redis": "assets/serviceRedis.png",
+    "http": "assets/serviceHttp.png",
     "default": "assets/serviceUnknown.png"
 }
 
@@ -150,6 +152,12 @@ class DiagramComponent {
                 this.header = "<div class='block'>";
                 this.footer = "</div>";
                 break;
+            case "when":
+                this.classes.push("else");
+                this.innerText = `When ::ICON:: ${obj.command}`;
+                this.header = "<div class='block'>";
+                this.footer = "</div>";
+                break;
         }
     }
 
@@ -218,7 +226,7 @@ class Diagram {
 //
 // Reading external files and launching server
 //
-fs.readFile("example.json", {encoding: 'utf-8'}, function(err, rawTree){
+fs.readFile("example2.json", {encoding: 'utf-8'}, function(err, rawTree){
     if(!!err) {
         console.log(err);
         return;
