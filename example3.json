@@ -1,0 +1,204 @@
+{
+  "stories": {
+    "example3.story": {
+      "tree": {
+        "2": {
+          "method": "expression",
+          "ln": "2",
+          "col_start": "1",
+          "col_end": "106",
+          "output": null,
+          "name": [
+            "primes"
+          ],
+          "service": null,
+          "command": null,
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "list",
+              "items": [
+                {
+                  "$OBJECT": "int",
+                  "int": 2
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 3
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 5
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 7
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 11
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 13
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 17
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 19
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 23
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 29
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 31
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 37
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 41
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 43
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 47
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 53
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 59
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 61
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 67
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 71
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 73
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 79
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 83
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 89
+                },
+                {
+                  "$OBJECT": "int",
+                  "int": 97
+                }
+              ]
+            }
+          ],
+          "enter": null,
+          "exit": null,
+          "parent": null,
+          "src": "primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]",
+          "next": "4"
+        },
+        "4": {
+          "method": "for",
+          "ln": "4",
+          "col_start": "9",
+          "col_end": "30",
+          "output": [
+            "p"
+          ],
+          "name": null,
+          "service": null,
+          "command": null,
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "path",
+              "paths": [
+                "primes"
+              ]
+            }
+          ],
+          "enter": "5",
+          "exit": null,
+          "parent": null,
+          "src": "foreach primes as p"
+        },
+        "5": {
+          "method": "execute",
+          "ln": "5",
+          "col_start": "5",
+          "col_end": "30",
+          "output": [],
+          "name": null,
+          "service": "log",
+          "command": "info",
+          "function": null,
+          "args": [
+            {
+              "$OBJECT": "arg",
+              "name": "msg",
+              "arg": {
+                "$OBJECT": "type_cast",
+                "type": {
+                  "$OBJECT": "type",
+                  "type": "string"
+                },
+                "value": {
+                  "$OBJECT": "path",
+                  "paths": [
+                    "p"
+                  ]
+                }
+              }
+            }
+          ],
+          "enter": null,
+          "exit": null,
+          "parent": "4",
+          "src": "    log info msg: p to string"
+        }
+      },
+      "services": [
+        "log"
+      ],
+      "entrypoint": "2",
+      "functions": {},
+      "version": "0.26.3"
+    }
+  },
+  "services": [
+    "log"
+  ],
+  "entrypoint": [
+    "example3.story"
+  ]
+}

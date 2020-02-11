@@ -17,14 +17,13 @@ const type_icon = {
     "string": "assets/typeText.png",
     "default": "assets/typeDefault.png",
     "boolean": "assets/typeBoolean.png",
-    "List": "assets/typeList.png"
+    "list": "assets/typeList.png"
 }
 
 const base_icons = {
     "function": "assets/functionIcon.png",
     "return": "assets/returnIcon.png",
-    "for": "assets/loopIcon.png",
-    "while": "assets/loopIcon.png",
+    "loop": "assets/loopIcon.png",
 }
 
 const parser = {
@@ -98,42 +97,50 @@ class DiagramComponent {
     html      = ""
     classes   = ["component"]
     iconsSrc   = {}
+    innerVariables = {}
     innerText = ""
+    type = ""
 
     innerComponents = []
-    header = ""
-    footer = ""
 
     constructor(obj) {
 
+        //
+        // Those are displayed as variables, so we switch the method
+        //
+        if(obj.method == "expression") {
+            obj = { "method": "variable", "name": obj.name[0], "type": obj.args[0]["$OBJECT"] }
+        } else if(obj.method == "call") {
+            obj = { "method": "variable", "name": obj.name[0], "type": undefined }
+        }
+
+        this.type = obj.method;
+
         switch(obj.method) {
+            case "variable":
+                this.classes.push("variable");
+                this.innerText = "::main::" + obj.name;
+
+                if( !obj.type && "function" in obj ) {
+                    // It's a function call, but the function hasn't been defined yet...
+                    let called_function = obj["function"]
+                    findFuncReturnType(called_function, type => {
+                        this.iconsSrc["main"] = type_icon[type] || type_icon["default"];
+                    })
+                } else {
+                    this.iconsSrc["main"] = type_icon[obj.type] || type_icon["default"];
+                }
+                break;
             case "function":
                 this.classes.push("function")
                 this.innerText = "::main::" + obj.function;
                 this.iconsSrc["main"] = base_icons["function"]
-                this.header = "<div class='block'>";
-                this.footer = "</div>";
                 registerNewFunction( obj["function"], obj["output"][0] )
                 break;
             case "return":
                 this.classes.push("return")
                 this.innerText = "::main::" + parser.parseArgs(obj.args[0]);
                 this.iconsSrc["main"] = base_icons["return"]
-                break;
-            case "expression":
-                this.classes.push("variable");
-                this.innerText = "::main::" + obj.name[0];
-                let type = obj.args[0]["$OBJECT"];
-                this.iconsSrc["main"] = type_icon[type] || type_icon["default"];
-                break;
-            case "call":
-                this.classes.push("variable")
-                this.innerText = "::main::" + obj.name[0];
-
-                let called_function = obj["function"]
-                findFuncReturnType(called_function, type => {
-                    this.iconsSrc["main"] = type_icon[type] || type_icon["default"];
-                })
                 break;
             case "execute":
                 if( obj.output.length ) {
@@ -151,21 +158,25 @@ class DiagramComponent {
             case "if":
                 this.classes.push("if");
                 this.innerText = `If ${parser.parseArgs(obj.args[0])}:`;
-                this.header = "<div class='block'>";
-                this.footer = "</div>";
                 break;
             case "else":
                 this.classes.push("else");
                 this.innerText = `Else:`;
-                this.header = "<div class='block'>";
-                this.footer = "</div>";
                 break;
             case "when":
-                this.classes.push("else");
-                this.innerText = `When ::main:: ${obj.command}<br/><div class="component variable">${obj.output[0]}</div>`;
+                this.classes.push("when");
+                this.innerText = `When ::main:: ${obj.command}<br/>@@output@@`;
+
+                this.innerVariables["output"] = new DiagramComponent({ "method": "variable", "name": obj.output[0], "type": undefined })
                 this.iconsSrc["main"] = service_icon[obj.service] || service_icon["default"];
-                this.header = "<div class='block'>";
-                this.footer = "</div>";
+                break;
+            case "for":
+                this.classes.push("for");
+                this.innerText = `Loop through ::main:: @@loopFeed@@`
+                this.innerText += `<br/>@@output@@`;
+                // this.iconsSrc["var"] = type_icon["default"];
+                this.innerVariables["output"] = new DiagramComponent({ "method": "variable", "name": obj.output[0], "type": undefined })
+                this.innerVariables["loopFeed"] = new DiagramComponent({ "method": "variable", "name": parser.parseArgs(obj.args[0]), "type": undefined })
                 break;
         }
     }
@@ -175,25 +186,43 @@ class DiagramComponent {
      * have a body (e.g. function, when, if ...)
      */
     addToBody( component ) {
-        this.innerComponents.push(component);
+        if( ["for", "when", "if", "else"].includes(this.type) ) {
+            // Doesn't make sense otherwise...
+            this.innerComponents.push(component);
+            return true;
+        }
+        return false;
     }
 
     getHTML() {
-        this.innerText = this.innerText.replace(/::\w+::/, match => {
-            match = match.replace(/:/g, "");
+        this.innerText = this.innerText
+            .replace(/::\w+::/g, match => {
+                match = match.replace(/:/g, "");
 
-            if( match in this.iconsSrc )
-                return `<img class="icon" src="${this.iconsSrc[match]}" />`
-            else
-                return ""
-        })
+                if( match in this.iconsSrc )
+                    return `<img class="icon" src="${this.iconsSrc[match]}" />`
+                else
+                    return ""
+            }).replace(/@@\w+@@/g, match => {
+                match = match.replace(/@/g, "");
 
-        let compHtml = `<div class="${this.classes.join(' ')}">${this.innerText}</div>`
+                if( match in this.innerVariables )
+                    return this.innerVariables[match].getHTML()
+                else
+                    return ""
+            })
 
-        return compHtml +
-            this.header + 
-            this.innerComponents.reduce((acc, cmp) => acc+cmp.getHTML(), "")+
-            this.footer;
+        let out = `<div class="${this.classes.join(' ')}">${this.innerText}</div>`
+
+        if( !!this.innerComponents.length ) {
+            console.log(this.innerText);
+            console.log(this.innerComponents);
+            out += `<div class="block">`;
+            out += this.innerComponents.reduce((acc, cmp) => acc+cmp.getHTML(), "");
+            out += `</div>`;
+        }
+
+        return out;
     }
 }
 
@@ -219,13 +248,14 @@ class Diagram {
 
             let comp = new DiagramComponent(currentLine)
 
-            if( parent === null )
+            let status = false;
+            if( parent !== null ) // root level
+                status = parent.addToBody(comp)
+            if( !status )
                 this.components.push(comp);
-            else
-                parent.addToBody(comp);
 
             if( !!currentLine.enter ) {
-                this.parseTree(fullTree, currentLine.enter, comp)
+                let status = this.parseTree(fullTree, currentLine.enter, comp)
             }
 
             pointer = currentLine.next

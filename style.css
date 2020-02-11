@@ -6,11 +6,13 @@ body {
 }
 
 .block {
-  margin-left: 25px;
+  margin-left: 20px;
   margin-bottom: 20px;
-  border-left: 1px solid #bbb;
+  padding-left: 10px;
+  border-left: 1px dashed #bbb;
 }
 .component {
+  font-weight: bold;
   border: 2px solid #bbb;
   background: #FFFFFF;
   border-radius: 10px;
@@ -27,6 +29,8 @@ body {
 }
 
 .variable {
+  font-size: 12pt;
   background: #DAF8FF;
+  display: inline-block;
   border: 0;
 }
