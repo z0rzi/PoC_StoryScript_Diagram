@@ -14,6 +14,7 @@ const service_icon = {
 const type_icon = {
     "string": "assets/typeText.png",
     "default": "assets/typeDefault.png",
+    "boolean": "assets/typeBoolean.png",
     "List": "assets/typeList.png"
 }
 
@@ -62,6 +63,34 @@ const parser = {
     }
 }
 
+//
+// Bellow functions used to asynchronously add type to variables for the "call" method
+//  ⤷ The call method doesn't give the var type, so we have to wait until the
+//    function is defined to retrieve the variable type
+//
+var waiting_vars = {};
+var defined_funcs = {};
+
+function registerNewFunction(func_name, return_type) {
+    defined_funcs[func_name] = return_type;
+
+    if( func_name in waiting_vars ) {
+        waiting_vars[func_name].forEach( callback => callback( return_type ) )
+    }
+}
+
+function findFuncReturnType(func_name, callback) {
+    if( func_name in defined_funcs ) {
+        callback(defined_funcs[func_name]);
+    } else {
+        if( func_name in waiting_vars ) {
+            waiting_vars[func_name].push(callback);
+        } else {
+            waiting_vars[func_name] = [ callback ];
+        }
+    }
+}
+
 class DiagramComponent {
 
     html      = ""
@@ -82,6 +111,7 @@ class DiagramComponent {
                 this.imageSrc = base_icons["function"]
                 this.header = "<div class='block'>";
                 this.footer = "</div>";
+                registerNewFunction( obj["function"], obj["output"][0] )
                 break;
             case "return":
                 this.classes.push("return")
@@ -89,12 +119,19 @@ class DiagramComponent {
                 this.imageSrc = base_icons["return"]
                 break;
             case "expression":
-                this.classes.push("variable")
+                this.classes.push("variable");
                 this.innerText = obj.name[0];
+                let type = obj.args[0]["$OBJECT"];
+                this.imageSrc = type_icon[type] || type_icon["default"];
                 break;
             case "call":
                 this.classes.push("variable")
                 this.innerText = obj.name[0];
+
+                let called_function = obj["function"]
+                findFuncReturnType(called_function, type => {
+                    this.imageSrc = type_icon[type] || type_icon["default"];
+                })
                 break;
             case "execute":
                 this.classes.push("execute");
