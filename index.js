@@ -2,9 +2,9 @@ const fs = require('fs'),
       http = require('http'),
       path = require('path');
 
-const PORT = 8000
+const PORT = 8080
 
-const service_icon = {
+const SERVICE_ICONS = {
     "stripe": "assets/serviceStripe.png",
     "psql": "assets/servicePostgre.png",
     "mailgun": "assets/serviceMailgun.png",
@@ -13,14 +13,14 @@ const service_icon = {
     "default": "assets/serviceUnknown.png"
 }
 
-const type_icon = {
+const TYPE_ICONS = {
     "string": "assets/typeText.png",
     "default": "assets/typeDefault.png",
     "boolean": "assets/typeBoolean.png",
     "list": "assets/typeList.png"
 }
 
-const base_icons = {
+const BASE_ICONS = {
     "function": "assets/functionIcon.png",
     "return": "assets/returnIcon.png",
     "loop": "assets/loopIcon.png",
@@ -97,7 +97,7 @@ class DiagramComponent {
     html      = ""
     classes   = ["component"]
     iconsSrc   = {}
-    innerVariables = {}
+    blockVariables = {}
     innerText = ""
     type = ""
 
@@ -125,22 +125,22 @@ class DiagramComponent {
                     // It's a function call, but the function hasn't been defined yet...
                     let called_function = obj["function"]
                     findFuncReturnType(called_function, type => {
-                        this.iconsSrc["main"] = type_icon[type] || type_icon["default"];
+                        this.iconsSrc["main"] = TYPE_ICONS[type] || TYPE_ICONS["default"];
                     })
                 } else {
-                    this.iconsSrc["main"] = type_icon[obj.type] || type_icon["default"];
+                    this.iconsSrc["main"] = TYPE_ICONS[obj.type] || TYPE_ICONS["default"];
                 }
                 break;
             case "function":
                 this.classes.push("function")
                 this.innerText = "::main::" + obj.function;
-                this.iconsSrc["main"] = base_icons["function"]
+                this.iconsSrc["main"] = BASE_ICONS["function"]
                 registerNewFunction( obj["function"], obj["output"][0] )
                 break;
             case "return":
                 this.classes.push("return")
                 this.innerText = "::main::" + parser.parseArgs(obj.args[0]);
-                this.iconsSrc["main"] = base_icons["return"]
+                this.iconsSrc["main"] = BASE_ICONS["return"]
                 break;
             case "execute":
                 if( obj.output.length ) {
@@ -148,11 +148,11 @@ class DiagramComponent {
                     this.classes.push("variable");
                     this.innerText = "::main::" + obj.output[0];
                     // Unable to know the type for now...
-                    this.iconsSrc["main"] = type_icon["default"];
+                    this.iconsSrc["main"] = TYPE_ICONS["default"];
                 } else {
                     this.classes.push("execute");
                     this.innerText = "::main::" + obj.command;
-                    this.iconsSrc["main"] = service_icon[obj.service] || service_icon["default"];
+                    this.iconsSrc["main"] = SERVICE_ICONS[obj.service] || SERVICE_ICONS["default"];
                 }
                 break;
             case "if":
@@ -167,16 +167,16 @@ class DiagramComponent {
                 this.classes.push("when");
                 this.innerText = `When ::main:: ${obj.command}<br/>@@output@@`;
 
-                this.innerVariables["output"] = new DiagramComponent({ "method": "variable", "name": obj.output[0], "type": undefined })
-                this.iconsSrc["main"] = service_icon[obj.service] || service_icon["default"];
+                this.blockVariables["output"] = new DiagramComponent({ "method": "variable", "name": obj.output[0], "type": undefined })
+                this.iconsSrc["main"] = SERVICE_ICONS[obj.service] || SERVICE_ICONS["default"];
                 break;
             case "for":
                 this.classes.push("for");
-                this.innerText = `Loop through ::main:: @@loopFeed@@`
+                this.innerText = `::loop:: Loop through @@loopFeed@@`
                 this.innerText += `<br/>@@output@@`;
-                // this.iconsSrc["var"] = type_icon["default"];
-                this.innerVariables["output"] = new DiagramComponent({ "method": "variable", "name": obj.output[0], "type": undefined })
-                this.innerVariables["loopFeed"] = new DiagramComponent({ "method": "variable", "name": parser.parseArgs(obj.args[0]), "type": undefined })
+                this.iconsSrc["loop"] = BASE_ICONS["loop"];
+                this.blockVariables["output"] = new DiagramComponent({ "method": "variable", "name": obj.output[0], "type": undefined })
+                this.blockVariables["loopFeed"] = new DiagramComponent({ "method": "variable", "name": parser.parseArgs(obj.args[0]), "type": undefined })
                 break;
         }
     }
@@ -186,7 +186,7 @@ class DiagramComponent {
      * have a body (e.g. function, when, if ...)
      */
     addToBody( component ) {
-        if( ["for", "when", "if", "else"].includes(this.type) ) {
+        if( ["function", "for", "when", "if", "else"].includes(this.type) ) {
             // Doesn't make sense otherwise...
             this.innerComponents.push(component);
             return true;
@@ -206,8 +206,8 @@ class DiagramComponent {
             }).replace(/@@\w+@@/g, match => {
                 match = match.replace(/@/g, "");
 
-                if( match in this.innerVariables )
-                    return this.innerVariables[match].getHTML()
+                if( match in this.blockVariables )
+                    return this.blockVariables[match].getHTML()
                 else
                     return ""
             })
@@ -215,8 +215,6 @@ class DiagramComponent {
         let out = `<div class="${this.classes.join(' ')}">${this.innerText}</div>`
 
         if( !!this.innerComponents.length ) {
-            console.log(this.innerText);
-            console.log(this.innerComponents);
             out += `<div class="block">`;
             out += this.innerComponents.reduce((acc, cmp) => acc+cmp.getHTML(), "");
             out += `</div>`;
@@ -271,7 +269,7 @@ class Diagram {
 //
 // Reading external files and launching server
 //
-fs.readFile("example2.json", {encoding: 'utf-8'}, function(err, rawTree){
+fs.readFile("./samples/example3.json", {encoding: 'utf-8'}, function(err, rawTree){
     if(!!err) {
         console.log(err);
         return;
