@@ -25,3 +25,8 @@ body {
   margin-right: 10px;
   max-width: 20px;
 }
+
+.variable {
+  background: #DAF8FF;
+  border: 0;
+}

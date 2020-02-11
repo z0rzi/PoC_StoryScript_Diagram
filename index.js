@@ -136,9 +136,17 @@ class DiagramComponent {
                 })
                 break;
             case "execute":
-                this.classes.push("execute");
-                this.innerText = "::main::" + obj.command;
-                this.iconsSrc["main"] = service_icon[obj.service] || service_icon["default"];
+                if( obj.output.length ) {
+                    // Means it initialize a variable!
+                    this.classes.push("variable");
+                    this.innerText = "::main::" + obj.output[0];
+                    // Unable to know the type for now...
+                    this.iconsSrc["main"] = type_icon["default"];
+                } else {
+                    this.classes.push("execute");
+                    this.innerText = "::main::" + obj.command;
+                    this.iconsSrc["main"] = service_icon[obj.service] || service_icon["default"];
+                }
                 break;
             case "if":
                 this.classes.push("if");
@@ -154,7 +162,7 @@ class DiagramComponent {
                 break;
             case "when":
                 this.classes.push("else");
-                this.innerText = `When ::main:: ${obj.command}`;
+                this.innerText = `When ::main:: ${obj.command}<br/><div class="component variable">${obj.output[0]}</div>`;
                 this.iconsSrc["main"] = service_icon[obj.service] || service_icon["default"];
                 this.header = "<div class='block'>";
                 this.footer = "</div>";
