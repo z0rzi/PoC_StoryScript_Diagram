@@ -97,7 +97,7 @@ class DiagramComponent {
 
     html      = ""
     classes   = ["component"]
-    iconSrc   = ""
+    iconsSrc   = {}
     innerText = ""
 
     innerComponents = []
@@ -109,36 +109,36 @@ class DiagramComponent {
         switch(obj.method) {
             case "function":
                 this.classes.push("function")
-                this.innerText = obj.function;
-                this.imageSrc = base_icons["function"]
+                this.innerText = "::main::" + obj.function;
+                this.iconsSrc["main"] = base_icons["function"]
                 this.header = "<div class='block'>";
                 this.footer = "</div>";
                 registerNewFunction( obj["function"], obj["output"][0] )
                 break;
             case "return":
                 this.classes.push("return")
-                this.innerText = parser.parseArgs(obj.args[0]);
-                this.imageSrc = base_icons["return"]
+                this.innerText = "::main::" + parser.parseArgs(obj.args[0]);
+                this.iconsSrc["main"] = base_icons["return"]
                 break;
             case "expression":
                 this.classes.push("variable");
-                this.innerText = obj.name[0];
+                this.innerText = "::main::" + obj.name[0];
                 let type = obj.args[0]["$OBJECT"];
-                this.imageSrc = type_icon[type] || type_icon["default"];
+                this.iconsSrc["main"] = type_icon[type] || type_icon["default"];
                 break;
             case "call":
                 this.classes.push("variable")
-                this.innerText = obj.name[0];
+                this.innerText = "::main::" + obj.name[0];
 
                 let called_function = obj["function"]
                 findFuncReturnType(called_function, type => {
-                    this.imageSrc = type_icon[type] || type_icon["default"];
+                    this.iconsSrc["main"] = type_icon[type] || type_icon["default"];
                 })
                 break;
             case "execute":
                 this.classes.push("execute");
-                this.innerText = obj.command;
-                this.imageSrc = service_icon[obj.service] || service_icon["default"];
+                this.innerText = "::main::" + obj.command;
+                this.iconsSrc["main"] = service_icon[obj.service] || service_icon["default"];
                 break;
             case "if":
                 this.classes.push("if");
@@ -154,7 +154,8 @@ class DiagramComponent {
                 break;
             case "when":
                 this.classes.push("else");
-                this.innerText = `When ::ICON:: ${obj.command}`;
+                this.innerText = `When ::main:: ${obj.command}`;
+                this.iconsSrc["main"] = service_icon[obj.service] || service_icon["default"];
                 this.header = "<div class='block'>";
                 this.footer = "</div>";
                 break;
@@ -170,10 +171,16 @@ class DiagramComponent {
     }
 
     getHTML() {
-        let img = ""
-        if( !!this.imageSrc ) img = `<img class="icon" src="${this.imageSrc}" />`
+        this.innerText = this.innerText.replace(/::\w+::/, match => {
+            match = match.replace(/:/g, "");
 
-        let compHtml = `<div class="${this.classes.join(' ')}">${img} ${this.innerText}</div>`
+            if( match in this.iconsSrc )
+                return `<img class="icon" src="${this.iconsSrc[match]}" />`
+            else
+                return ""
+        })
+
+        let compHtml = `<div class="${this.classes.join(' ')}">${this.innerText}</div>`
 
         return compHtml +
             this.header + 
